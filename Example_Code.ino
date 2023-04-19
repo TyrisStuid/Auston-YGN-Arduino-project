@@ -62,6 +62,7 @@ distance = duration * (0.034/2);
 
 //making the car spin slowly until it detects an object
 while(distance<=45 || distance=0){
+   delay(500);
    digitalWrite(mA1, HIGH);
    digitalWrite(mA2, LOW);
    analogWrite(enableA,80);
@@ -70,7 +71,7 @@ while(distance<=45 || distance=0){
    digitalWrite(mB2, HIGH);
    analogWrite(enableB,80);
     
-   delay(1000);
+   delay(3000);
   }
 
 //this if statement will start processing once an object is detected, the car will start moving towards the object 
