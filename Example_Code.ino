@@ -1,169 +1,129 @@
-#include<servo.h>
+//I do not have or belong any credit of this code, majority of this sketch is based on the following link
+//https://www.instructables.com/How-to-Make-Arduino-Sumo-Robot/
+int trig = 3;
+int echo = 4;
+long time;
+float distance;
+const int IN1=6;
+const int IN2=5;
+const int IN3=9;
+const int IN4=10;
+#define IR_sensor_front A0 // front sensor
 
-//Declaring motor driver pin
-
-//Motor A
-int enableA = 11;
-int mA1 = 12;
-int mA2 = 13;
-
-//Motor B
-int enableB = 9;
-int mB1 = 7;
-int mB2 = 8;
-
-//Pins of 2 IR sensors
-int IRout1 = 10;
-int IRout2 = 2;
-
-//naming servo motor as my_servo
-Servo my_servo;
-
-//Declaring the trigger pin and echo pin of the ultrasonic sensor
-int trigPin = 6;
-int echoPin = 5;
-
-
-void setup(){
-//initialize variables of components
-
-//connecting my_servo at pin 3
-my_servo.attach(3);
-
-//setting motorA and motorB as output
-pinMode(enableA,OUTPUT);
-pinMode(mA1,OUTPUT);
-pinMode(mA2,OUTPUT);
-pinMode(enableB,OUTPUT);
-pinMode(mB1,OUTPUT);
-pinMode(mB2,OUTPUT);
+void setup() 
+{
+  pinMode(trig,OUTPUT);
+  pinMode(echo,INPUT);
 Serial.begin(9600);
-
-//setting up the ultrasonic sensor
-pinMode(trigPin,OUTPUT);
-pinMode(echoPin,INPUT);
-
-//setting up the 2 IR sensors
-pinMode(IRout1,INPUT);
-pinMode(IRout2,INPUT);
+delay (5000); 
+digitalWrite(trig,LOW);
+    delay(2);
+    digitalWrite(trig,HIGH);
+    delay(10);
+    digitalWrite(trig,LOW);
+    time = pulseIn(echo,HIGH);
+    distance = time*0.034/2;
+    delay(1000);
 }
+void loop()
+{
+  
+ int IR_front = analogRead(IR_sensor_front);
+ int IR_back = analogRead(IR_sensor_back);
+ digitalWrite(trig,LOW);
+    delay(2);
+    digitalWrite(trig,HIGH);
+    delay(10);
+    digitalWrite(trig,LOW);
+    time = pulseIn(echo,HIGH);
+    distance = time*0.034/2;
+    delay(100);
+while(distance>50){
 
-//Main loop
-void loop(){
-int IR1_value = digitalRead(IRout1);
-int IR2_value = digitalRead(IRout2);
+ROTATE(100);
+    delay(100);
+    Stop();
+    delay(50);
+    int IR_front = analogRead(IR_sensor_front);
+    digitalWrite(trig,LOW);
+    delay(2);
+    digitalWrite(trig,HIGH);
+    delay(10);
+    digitalWrite(trig,LOW);
+    time = pulseIn(echo,HIGH);
+    distance = time*0.034/2;
+    delay(50);
 
-//ultrasonic sensor receiving data
-digitalWrite(trigPin,HIGH);
-delay(10);
-digitalWrite(echoPin,LOW);
-duration = pulseIn(echoPin,LOW);
-distance = duration * (0.034/2);
+     if (IR_front > 650 ) 
+   {
+   Stop();
+   delay (50);
+   BACKWARD(85);
+   delay (500);
+   ROTATE(90);
+   delay(1000);
+   }
+}  
 
-//making the car spin slowly until it detects an object
-while(distance<=45 || distance=0){
-   delay(500);
-   digitalWrite(mA1, HIGH);
-   digitalWrite(mA2, LOW);
-   analogWrite(enableA,80);
-
-   digitalWrite(mB1, LOW);
-   digitalWrite(mB2, HIGH);
-   analogWrite(enableB,80);
-    
-   delay(3000);
+  while(distance<=30){
+     FORWARD(90);
+     digitalWrite(trig,LOW);
+    delay(2);
+    digitalWrite(trig,HIGH);
+    delay(10);
+    digitalWrite(trig,LOW);
+    time = pulseIn(echo,HIGH);
+    distance = time*0.034/2;
+    int IR_front = analogRead(IR_sensor_front);
+     if (IR_front > 650 )
+   {
+   Stop();
+   delay (50);
+   BACKWARD(85);
+   delay (500);
+   ROTATE(90);
+   delay(1000);
+   }
+   delay(100);
+  }  
+ if (IR_front > 650 ) 
+   {
+   Stop();
+   delay (50);
+   BACKWARD(85);
+   delay (500);
+   ROTATE(90);
+   delay(1000);
+   }
+  else{
+   Stop();
+   delay (50);
+   FORWARD(85);
+   delay (500);
   }
-
-//this if statement will start processing once an object is detected, the car will start moving towards the object 
- 
-if (distance<=45 && IR1_value=LOW && IR2_value=LOW){
-    while(distance>=3 && IR1_value=LOW){
-       digitalWrite(mA1, HIGH);
-       digitalWrite(mA2, LOW);
-       analogWrite(enableA,127);
-
-       digitalWrite(mB1, HIGH);
-       digitalWrite(mB2, LOW);
-       analogWrite(enableB,127);
-    }
-//this if statement will stop the car when the object is less than 3cm away from the sensor
-    if (distance<3){
-       digitalWrite(mA1, LOW);
-       digitalWrite(mA2, LOW);
-       analogWrite(enableA,0);
-
-       digitalWrite(mB1, LOW);
-       digitalWrite(mB2, LOW);
-       analogWrite(enableB,0);
-       delay(1000);
-//the servo will activate the slab which will scoop the object into the shovel 
-       my_servo.write(180);
-       delay(2000);
-
-//when the object is carried, the car will start moving until the front part is out of the circle 
-       while (IR1_value=LOW){
-          digitalWrite(mA1, HIGH);
-          digitalWrite(mA2, LOW);
-          analogWrite(enableA,63);
-          digitalWrite(mB1, HIGH);
-          digitalWrite(mB2, LOW);
-          analogWrite(enableB,63);
-       }
-
-
-//After that, the car will stop and dump the object 
-       digitalWrite(mA1, LOW);
-       digitalWrite(mA2, LOW);
-       analogWrite(enableA,0);
-       digitalWrite(mB1, LOW);
-       digitalWrite(mB2, LOW);
-       analogWrite(enableB,0);
-       delay(1000);
-       my_servo.write(0);
-       delay(1500);
-
-//The car will move backwards until its entire frame is back in the circle
-       while(IR1_value=HIGH){
-          digitalWrite(mA1, LOW);
-          digitalWrite(mA2, HIGH);
-          analogWrite(enableA,127);
-          digitalWrite(mB1, LOW);
-          digitalWrite(mB2, HIGH);
-          analogWrite(enableB,127);           
-       }
-       digitalWrite(mA1, LOW);
-       digitalWrite(mA2, LOW);
-       analogWrite(enableA,0);
-       digitalWrite(mB1, LOW);
-       digitalWrite(mB2, LOW);
-       analogWrite(enableB,0);
-       delay(1000);              
-    }
-
-// this statement will start working when the car is accidentally out of the circle going towards an object   
-    else if(IR1_value = HIGH){
-
-       //the car will move backwards to be back in the circle
-       while(IR1_value=HIGH && IR2_value=LOW){  
-           digitalWrite(mA1, LOW);
-           digitalWrite(mA2, HIGH);
-           analogWrite(enableA,127);
-           digitalWrite(mB1, LOW);
-           digitalWrite(mB2, HIGH);
-           analogWrite(enableB,127);
-       }
-
-       //then it will stop
-       digitalWrite(mA1, LOW);
-       digitalWrite(mA2, LOW);
-       analogWrite(enableA,0);
-       digitalWrite(mB1, LOW);
-       digitalWrite(mB2, LOW);
-       analogWrite(enableB,0);
-       delay(1000); 
-    }
-  }
+ }
+void FORWARD (int Speed){
+  analogWrite(IN1,Speed);
+  analogWrite(IN2,0);
+  analogWrite(IN3,0);
+  analogWrite(IN4,Speed);
 }
- 
-
-
+void BACKWARD (int Speed){
+  analogWrite(IN1,0);
+  analogWrite(IN2,Speed);
+  analogWrite(IN3,Speed);
+  analogWrite(IN4,0);
+}
+void ROTATE (int Speed)
+{
+  analogWrite(IN1,Speed);
+  analogWrite(IN2,0);
+  analogWrite(IN3,Speed);
+  analogWrite(IN4,0);
+}
+void Stop(){
+  analogWrite(IN1,0);
+  analogWrite(IN2,0);
+  analogWrite(IN3,0);
+  analogWrite(IN4,0);
+}
